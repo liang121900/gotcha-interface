@@ -1,3 +1,33 @@
+AWS Serverless Api Using Micronaut and Graalvm.
+
+### Before Build/Package/Deploy
+Change aws profile to __dev__ or __prod__
+
+#### Build:
+
+-  For dev:
+    - sam build __--config-env dev__
+
+- For prod:
+    - sam build __--config-env prod__
+
+- Require __docker__ and __make__ to be installed.
+-  For windows, using wsl might be easier.
+
+#### Package:
+-  For dev:
+    - sam package __--config-env dev__
+
+- For prod:
+    - sam package __--config-env prod__
+
+#### Deploy
+-  For dev:
+    - sam deploy __--config-env dev__
+
+- For prod:
+    - sam deploy __--config-env prod__
+
 ## Micronaut 3.3.1 Documentation
 
 - [User Guide](https://docs.micronaut.io/3.3.1/guide/index.html)
