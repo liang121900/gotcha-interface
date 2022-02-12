@@ -1,4 +1,4 @@
-AWS Serverless Api Using Micronaut and Graalvm.
+####AWS Serverless Api Using Micronaut and Graalvm.
 
 ### Before Build/Package/Deploy
 Change aws profile to __dev__ or __prod__
@@ -66,30 +66,3 @@ This will build the GraalVM native image inside a docker container and generate 
 
 - [Micronaut HTTP Client documentation](https://docs.micronaut.io/latest/guide/index.html#httpClient)
 
-### Before Build/Package/Deploy
-Change profile to __dev__ or __prod__
-
-#### Build:
-
--  For dev:
-    - sam build __--config-env dev__
-
-- For prod:
-    - sam build __--config-env prod__
-
-- Require __docker__ and __make__ to be installed.
--  For windows, using wsl might be easier.
-
-#### Pakcage:
--  For dev:
-    - sam package __--config-env dev__
-
-- For prod:
-    - sam package __--config-env prod__
-
-#### Deploy
--  For dev:
-    - sam deploy __--config-env dev__
-
-- For prod:
-    - sam deploy __--config-env prod__
