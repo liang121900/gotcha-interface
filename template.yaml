@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  graalvm-s3
+
+  Sample SAM Template for graalvm-s3
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - uat
+      - prod
+    Description: Environment name
+
+Mappings: 
+  MemorySizeMap: 
+    dev: 
+      MemorySize: 256
+    uat: 
+      MemorySize: 256
+    prod: 
+      MemorySize: 512
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Api:
+    EndpointConfiguration: REGIONAL
+    
+
+Resources:
+  GotchaRestLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: io.micronaut.function.aws.proxy.MicronautLambdaHandler
+      Runtime: provided
+      MemorySize: !FindInMap [MemorySizeMap, !Ref Environment, MemorySize]
+      Policies: AWSLambdaBasicExecutionRole
+      Timeout: 30
+      PackageType: Zip
+      Events:
+        ProxyResource:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: any
+    Metadata:
+      BuildMethod: makefile            
+
+Outputs:
+  GotchaApi:
+    Description: URL for application
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/'
+    Export:
+      Name: GotchaApi

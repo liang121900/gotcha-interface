@@ -1,0 +1,36 @@
+version = 0.1
+[default.global.parameters]
+stack_name = "gotcha-interface-alpha"
+region = "us-east-2"
+s3_bucket = "serverless-artifact"
+s3_prefix = "gotcha-interface-alpha"
+
+[dev.global.parameters]
+stack_name = "gotcha-interface-alpha"
+region = "us-east-2"
+s3_bucket = "serverless-artifact"
+s3_prefix = "gotcha-interface-alpha"
+
+[prod.global.parameters]
+stack_name = "gotcha-interface-prod"
+region = "us-east-2"
+s3_bucket = "serverless-artifact"
+s3_prefix = "gotcha-interface-prod"
+
+[default.deploy.parameters]
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+tags = "project=\"gotcha-interface\" environment=\"dev\""
+parameter_overrides = "Environment=\"dev\""
+
+[dev.deploy.parameters]
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+tags = "project=\"gotcha-interface\" environment=\"dev\""
+parameter_overrides = "Environment=\"dev\""
+
+[prod.deploy.parameters]
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+tags = "project=\"gotcha-rest-prod\" environment=\"prod\""
+parameter_overrides = "Environment=\"prod\""
