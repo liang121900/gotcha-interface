@@ -13,3 +13,4 @@ out/
 .classpath
 .factorypath
 .aws-sam
+.vscode
