@@ -124,6 +124,25 @@
           </compilerArgs>
         </configuration>
       </plugin>
+
+      <plugin>
+          <groupId>com.amashchenko.maven.plugin</groupId>
+          <artifactId>gitflow-maven-plugin</artifactId>
+          <version>1.17.0</version>
+          <configuration>
+              <installProject>false</installProject>
+              <gitFlowConfig>
+                  <productionBranch>master</productionBranch>
+                  <developmentBranch>develop</developmentBranch>
+                  <featureBranchPrefix>feature/</featureBranchPrefix>
+                  <releaseBranchPrefix>release/</releaseBranchPrefix>
+                  <hotfixBranchPrefix>hotfix/</hotfixBranchPrefix>
+                  <supportBranchPrefix>support/</supportBranchPrefix>
+                  <versionTagPrefix></versionTagPrefix>
+                  <origin>origin</origin>
+              </gitFlowConfig>
+          </configuration>
+      </plugin>
     </plugins>
   </build>
 
