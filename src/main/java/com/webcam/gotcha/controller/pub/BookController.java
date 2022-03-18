@@ -1,12 +1,17 @@
-package com.webcam.gotcha;
+package com.webcam.gotcha.controller.pub;
+
+import java.util.UUID;
+
+import javax.validation.Valid;
+
+import com.webcam.gotcha.Book;
+import com.webcam.gotcha.BookSaved;
+
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
 
-import javax.validation.Valid;
-import java.util.UUID;
-
-@Controller(value = "/api/books")
+@Controller(value = "/api/public/books")
 public class BookController {
 
     @Post

@@ -66,3 +66,6 @@ This will build the GraalVM native image inside a docker container and generate 
 
 - [Micronaut HTTP Client documentation](https://docs.micronaut.io/latest/guide/index.html#httpClient)
 
+
+## Architecture
+The IAM role policy is actually managed by Amplify on the front end project.

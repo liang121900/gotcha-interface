@@ -1,9 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  graalvm-s3
-
-  Sample SAM Template for graalvm-s3
+  Serverless api with api gateway secured with IAM role.
+  Lambda is written in Java and Micronaut, and built in Graalvm.
 
 Parameters:
   Environment:
@@ -31,6 +30,13 @@ Globals:
     
 
 Resources:
+  RestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: live
+      Auth:
+        DefaultAuthorizer: AWS_IAM
+
   GotchaRestLambda:
     Type: AWS::Serverless::Function
     Properties:
