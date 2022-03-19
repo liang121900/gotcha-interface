@@ -69,3 +69,6 @@ This will build the GraalVM native image inside a docker container and generate 
 
 ## Architecture
 The IAM role policy is actually managed by Amplify on the front end project.
+
+## How to hit the API with/without Authentication on postman
+https://weekly.elfitz.com/2019/01/28/how-to-protect-an-api-via-cognito-federated-identities-and-test-it-in-paw-postman/

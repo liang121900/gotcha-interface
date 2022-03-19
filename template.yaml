@@ -30,12 +30,13 @@ Globals:
     
 
 Resources:
-  RestApi:
+  GotchaRestApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: live
       Auth:
         DefaultAuthorizer: AWS_IAM
+        InvokeRole: !GetAtt 'ApiGatewayExecutionRole.Arn'
 
   GotchaRestLambda:
     Type: AWS::Serverless::Function
@@ -53,12 +54,69 @@ Resources:
           Properties:
             Path: /{proxy+}
             Method: any
+            RestApiId:
+              Ref: GotchaRestApi            
     Metadata:
-      BuildMethod: makefile            
+      BuildMethod: makefile       
+
+  ApiGatewayExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: invokeLambdaPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'lambda:InvokeFunction'
+                Resource: !GetAtt 'GotchaRestLambda.Arn'
 
 Outputs:
   GotchaApi:
     Description: URL for application
-    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/'
+    Value: !Sub 'https://${GotchaRestApi}.execute-api.${AWS::Region}.amazonaws.com/live/'
     Export:
       Name: GotchaApi
+
+## TO DO Add Identity Pool that link to the cognito user pool, add Auth and unAuth Role and policy.
+
+# public access
+# {
+#     "Version": "2012-10-17",
+#     "Statement": [
+#         {
+#             "Effect": "Allow",
+#             "Action": [
+#                 "execute-api:Invoke"
+#             ],
+#             "Resource": [
+#                 "arn:aws:execute-api:us-east-2:744052593525:0crj684270/*/*/api/public/*"
+#             ]
+#         }
+#     ]
+# }
+
+# private access
+# {
+#     "Version": "2012-10-17",
+#     "Statement": [
+#         {
+#             "Effect": "Allow",
+#             "Action": [
+#                 "execute-api:Invoke"
+#             ],
+#             "Resource": [
+#                 "arn:aws:execute-api:us-east-2:744052593525:0crj684270/*/*/api/private/*"
+#             ]
+#         }
+#     ]
+# }
