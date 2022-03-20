@@ -1,0 +1,157 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Serverless api with api gateway secured with IAM role.
+  Lambda is written in Java and Micronaut, and built in Graalvm.
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: Environment name
+
+Mappings: 
+  MemorySizeMap: 
+    alpha: 
+      MemorySize: 256
+    beta: 
+      MemorySize: 256
+    prod: 
+      MemorySize: 512
+    
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Api:
+    EndpointConfiguration: REGIONAL
+    
+
+Resources:
+  # Type: AWS::Cognito::IdentityPool
+  # Properties: 
+  #   AllowClassicFlow: false
+  #   AllowUnauthenticatedIdentities: true
+  #   CognitoIdentityProviders: 
+  #     - ClientId: !FindInMap [CognitoMap, !Ref Environment, AppClientId]
+  #       ProviderName: !FindInMap [CognitoMap, !Ref Environment, ProviderName]
+  #   IdentityPoolName: gotcha-identity-pool-alpha
+
+  GotchaRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub 'gotcha-api-${EnvironmentName}'
+      StageName: live
+      Auth:
+        DefaultAuthorizer: AWS_IAM
+        InvokeRole: !GetAtt 'ApiGatewayExecutionRole.Arn'
+
+  GotchaRestLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: io.micronaut.function.aws.proxy.MicronautLambdaHandler
+      Runtime: provided
+      MemorySize: !FindInMap [MemorySizeMap, !Ref EnvironmentName, MemorySize]
+      Policies: AWSLambdaBasicExecutionRole
+      Timeout: 30
+      PackageType: Zip
+      Events:
+        ProxyResource:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: any
+            RestApiId:
+              Ref: GotchaRestApi            
+    Metadata:
+      BuildMethod: makefile       
+
+  ApiGatewayExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: invokeLambdaPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'lambda:InvokeFunction'
+                Resource: !GetAtt 'GotchaRestLambda.Arn'
+
+  # IdenPoolAuthenticatedRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     Policies:
+  #       - PolicyName: InvokePrivateApiPolicy
+  #         PolicyDocument:
+  #           Version: "2012-10-17"
+  #           Statement:
+  #             - Effect: Allow
+  #               Action: 'execute-api:Invoke'
+  #               Resource:
+  #                 - !Sub 'https://${GotchaRestApi}.execute-api.${AWS::Region}.amazonaws.com/live/*'
+
+  # IdenPoolUnAuthenticatedRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     Policies:
+  #       - PolicyName: InvokePrivateApiPolicy
+  #         PolicyDocument:
+  #           Version: "2012-10-17"
+  #           Statement:
+  #             - Effect: Allow
+  #               Action: 'execute-api:Invoke'
+  #               Resource:
+  #                 - !Sub 'https://${GotchaRestApi}.execute-api.${AWS::Region}.amazonaws.com/live/public/*'
+    
+
+Outputs:
+  GotchaApiUrl:
+    Description: URL for application
+    Value: !Sub 'https://${GotchaRestApi}.execute-api.${AWS::Region}.amazonaws.com/live'
+  GotchaApiId:
+    Description: Id for api gateway
+    Value: !Ref GotchaRestApi    
+
+## TO DO Add Identity Pool that link to the cognito user pool, add Auth and unAuth Role and policy.
+
+# public access
+# {
+#     "Version": "2012-10-17",
+#     "Statement": [
+#         {
+#             "Effect": "Allow",
+#             "Action": [
+#                 "execute-api:Invoke"
+#             ],
+#             "Resource": [
+#                 "arn:aws:execute-api:us-east-2:744052593525:0crj684270/*/*/api/public/*"
+#             ]
+#         }
+#     ]
+# }
+
+# private access
+# {
+#     "Version": "2012-10-17",
+#     "Statement": [
+#         {
+#             "Effect": "Allow",
+#             "Action": [
+#                 "execute-api:Invoke"
+#             ],
+#             "Resource": [
+#                 "arn:aws:execute-api:us-east-2:744052593525:0crj684270/*/*/api/private/*"
+#             ]
+#         }
+#     ]
+# }
+

@@ -72,3 +72,9 @@ The IAM role policy is actually managed by Amplify on the front end project.
 
 ## How to hit the API with/without Authentication on postman
 https://weekly.elfitz.com/2019/01/28/how-to-protect-an-api-via-cognito-federated-identities-and-test-it-in-paw-postman/
+
+## Deployment notes
+Deploy the rest api first, and then deploy the cognito resources through cognito-cf-template.yaml
+
+## SAM Template
+The template mostly contains two stacks, one for api gateway, and lambda and another one for cognito user pool, and identity pool.

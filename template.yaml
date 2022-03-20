@@ -1,17 +1,16 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Serverless api with api gateway secured with IAM role.
+  Serverless api with api gateway secured with IAM role, Cognito User Pool and Identity Pool
   Lambda is written in Java and Micronaut, and built in Graalvm.
 
 Parameters:
   Environment:
     Type: String
-    Default: dev
     AllowedValues:
       - dev
       - uat
-      - prod
+      - prd
     Description: Environment name
 
 Mappings: 
@@ -22,6 +21,13 @@ Mappings:
       MemorySize: 256
     prod: 
       MemorySize: 512
+  EnvironmentMap:
+    dev:
+      name: alpha
+    uat:
+      name: beta
+    prd:
+      name: prod 
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -30,93 +36,17 @@ Globals:
     
 
 Resources:
-  GotchaRestApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      StageName: live
-      Auth:
-        DefaultAuthorizer: AWS_IAM
-        InvokeRole: !GetAtt 'ApiGatewayExecutionRole.Arn'
-
-  GotchaRestLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: .
-      Handler: io.micronaut.function.aws.proxy.MicronautLambdaHandler
-      Runtime: provided
-      MemorySize: !FindInMap [MemorySizeMap, !Ref Environment, MemorySize]
-      Policies: AWSLambdaBasicExecutionRole
-      Timeout: 30
-      PackageType: Zip
-      Events:
-        ProxyResource:
-          Type: Api
-          Properties:
-            Path: /{proxy+}
-            Method: any
-            RestApiId:
-              Ref: GotchaRestApi            
-    Metadata:
-      BuildMethod: makefile       
-
-  ApiGatewayExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - apigateway.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Policies:
-        - PolicyName: invokeLambdaPolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: 'lambda:InvokeFunction'
-                Resource: !GetAtt 'GotchaRestLambda.Arn'
-
-Outputs:
   GotchaApi:
-    Description: URL for application
-    Value: !Sub 'https://${GotchaRestApi}.execute-api.${AWS::Region}.amazonaws.com/live/'
-    Export:
-      Name: GotchaApi
-
-## TO DO Add Identity Pool that link to the cognito user pool, add Auth and unAuth Role and policy.
-
-# public access
-# {
-#     "Version": "2012-10-17",
-#     "Statement": [
-#         {
-#             "Effect": "Allow",
-#             "Action": [
-#                 "execute-api:Invoke"
-#             ],
-#             "Resource": [
-#                 "arn:aws:execute-api:us-east-2:744052593525:0crj684270/*/*/api/public/*"
-#             ]
-#         }
-#     ]
-# }
-
-# private access
-# {
-#     "Version": "2012-10-17",
-#     "Statement": [
-#         {
-#             "Effect": "Allow",
-#             "Action": [
-#                 "execute-api:Invoke"
-#             ],
-#             "Resource": [
-#                 "arn:aws:execute-api:us-east-2:744052593525:0crj684270/*/*/api/private/*"
-#             ]
-#         }
-#     ]
-# }
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./aws-template/api-gateway-template.yaml
+      Parameters:
+        EnvironmentName: !FindInMap [EnvironmentMap, !Ref Environment, 'name']
+  CognitoResources:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./aws-template/cognito-cf-template.yaml
+      Parameters:
+        EnvironmentName: !FindInMap [EnvironmentMap, !Ref Environment, 'name']
+        GotchaApiId: !GetAtt GotchaApi.Outputs.GotchaApiId
+    DependsOn: GotchaApi        
