@@ -1,18 +1,16 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  graalvm-s3
-
-  Sample SAM Template for graalvm-s3
+  Serverless api with api gateway secured with IAM role, Cognito User Pool and Identity Pool
+  Lambda is written in Java and Micronaut, and built in Graalvm.
 
 Parameters:
   Environment:
     Type: String
-    Default: dev
     AllowedValues:
       - dev
       - uat
-      - prod
+      - prd
     Description: Environment name
 
 Mappings: 
@@ -23,6 +21,13 @@ Mappings:
       MemorySize: 256
     prod: 
       MemorySize: 512
+  EnvironmentMap:
+    dev:
+      name: alpha
+    uat:
+      name: beta
+    prd:
+      name: prod 
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -31,28 +36,17 @@ Globals:
     
 
 Resources:
-  GotchaRestLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: .
-      Handler: io.micronaut.function.aws.proxy.MicronautLambdaHandler
-      Runtime: provided
-      MemorySize: !FindInMap [MemorySizeMap, !Ref Environment, MemorySize]
-      Policies: AWSLambdaBasicExecutionRole
-      Timeout: 30
-      PackageType: Zip
-      Events:
-        ProxyResource:
-          Type: Api
-          Properties:
-            Path: /{proxy+}
-            Method: any
-    Metadata:
-      BuildMethod: makefile            
-
-Outputs:
   GotchaApi:
-    Description: URL for application
-    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/'
-    Export:
-      Name: GotchaApi
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./aws-template/api-gateway-template.yaml
+      Parameters:
+        EnvironmentName: !FindInMap [EnvironmentMap, !Ref Environment, 'name']
+  CognitoResources:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./aws-template/cognito-cf-template.yaml
+      Parameters:
+        EnvironmentName: !FindInMap [EnvironmentMap, !Ref Environment, 'name']
+        GotchaApiId: !GetAtt GotchaApi.Outputs.GotchaApiId
+    DependsOn: GotchaApi        
