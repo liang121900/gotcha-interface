@@ -1,4 +1,4 @@
-#### AWS Serverless Api Using Micronaut and Graalvm.
+#### AWS Serverless Api Using API Gateway and Micronaut and Graalvm on Lambda
 
 ### Before Build/Package/Deploy
 Change aws profile to __dev__ or __prod__
