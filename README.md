@@ -11,8 +11,8 @@ Change aws profile to __dev__ or __prod__
 - For prod:
     - sam build __--config-env prod__
 
-- Require __docker__ and __make__ to be installed.
--  For windows, using wsl might be easier.
+- Require __docker__, __make__, __unzip__ to be installed.
+-  For windows, using __wsl__ might be easier.
 
 #### Package:
 -  For dev:

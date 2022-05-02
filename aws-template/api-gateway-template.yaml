@@ -8,6 +8,9 @@ Parameters:
   EnvironmentName:
     Type: String
     Description: Environment name
+  UserPoolArn:
+    Type: String
+    Description: Arn of cognito user pool
 
 Mappings: 
   MemorySizeMap: 
@@ -40,8 +43,17 @@ Resources:
     Properties:
       Name: !Sub 'gotcha-api-${EnvironmentName}'
       StageName: live
+      Cors:
+        AllowOrigin: "'*'"
+        AllowMethods: "'POST, GET, PUT, PATCH, DELETE'"
+        AllowHeaders: "'*'" 
       Auth:
-        DefaultAuthorizer: AWS_IAM
+        # DefaultAuthorizer: NONE
+        Authorizers: 
+          CognitoAuthorizer:
+            UserPoolArn: !Ref UserPoolArn
+            AuthorizationScopes:
+              - "gotcha-interface-alpha.test-api.gotcha.com/book.all"
         InvokeRole: !GetAtt 'ApiGatewayExecutionRole.Arn'
 
   GotchaRestLambda:
@@ -60,8 +72,19 @@ Resources:
           Properties:
             Path: /{proxy+}
             Method: any
+            Auth:
+              Authorizer: CognitoAuthorizer
             RestApiId:
-              Ref: GotchaRestApi            
+              Ref: GotchaRestApi      
+        # CorsResource:
+        #   Type: Api
+        #   Properties:
+        #     Path: /{proxy+}
+        #     Method: options
+        #     Auth:
+        #       Authorizer: NONE
+        #     RestApiId:
+        #       Ref: GotchaRestApi                       
     Metadata:
       BuildMethod: makefile       
 

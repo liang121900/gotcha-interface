@@ -41,6 +41,7 @@ Resources:
     Properties:
       Location: ./aws-template/api-gateway-template.yaml
       Parameters:
+        UserPoolArn: !GetAtt CognitoResources.Outputs.UserPoolArn
         EnvironmentName: !FindInMap [EnvironmentMap, !Ref Environment, 'name']
   CognitoResources:
     Type: AWS::Serverless::Application
@@ -48,5 +49,5 @@ Resources:
       Location: ./aws-template/cognito-cf-template.yaml
       Parameters:
         EnvironmentName: !FindInMap [EnvironmentMap, !Ref Environment, 'name']
-        GotchaApiId: !GetAtt GotchaApi.Outputs.GotchaApiId
-    DependsOn: GotchaApi        
+        # GotchaApiId: !GetAtt GotchaApi.Outputs.GotchaApiId
+    # DependsOn: GotchaApi        

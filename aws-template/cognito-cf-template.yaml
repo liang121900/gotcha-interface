@@ -5,9 +5,9 @@ Description: cognito user pool, identity pool, auth and unauth IAM role for gotc
 Parameters:
   EnvironmentName:
     Type: String
-  GotchaApiId:
-    Type: String
-    Description: Id of gotcha api   
+  # GotchaApiId:
+  #   Type: String
+  #   Description: Id of gotcha api   
 
 Resources: 
   GotchaUserPool:
@@ -46,77 +46,82 @@ Resources:
       PreventUserExistenceErrors: ENABLED
       SupportedIdentityProviders: 
         - COGNITO
-      UserPoolId: !Ref GotchaUserPool      
+      UserPoolId: !Ref GotchaUserPool
+      
+Outputs:
+  UserPoolArn:
+    Description: Arn of cognito user pool
+    Value: !GetAtt GotchaUserPool.Arn
 
-  GotchaIdentityPool:
-    Type: AWS::Cognito::IdentityPool
-    Properties: 
-      AllowClassicFlow: false
-      AllowUnauthenticatedIdentities: false
-      CognitoIdentityProviders: 
-        - ClientId: !Ref WebappClient
-          ProviderName: !GetAtt GotchaUserPool.ProviderName
-      IdentityPoolName: !Sub 'gotcha-identity-pool-${EnvironmentName}'
-        # - environmentName: !Ref EnvironmentName
+  # GotchaIdentityPool:
+  #   Type: AWS::Cognito::IdentityPool
+  #   Properties: 
+  #     AllowClassicFlow: false
+  #     AllowUnauthenticatedIdentities: false
+  #     CognitoIdentityProviders: 
+  #       - ClientId: !Ref WebappClient
+  #         ProviderName: !GetAtt GotchaUserPool.ProviderName
+  #     IdentityPoolName: !Sub 'gotcha-identity-pool-${EnvironmentName}'
+  #       # - environmentName: !Ref EnvironmentName
 
-  IdentityPoolRoleAttachment: 
-    Type: AWS::Cognito::IdentityPoolRoleAttachment 
-    Properties: 
-      IdentityPoolId: !Ref GotchaIdentityPool
-      Roles: 
-        "authenticated": !GetAtt IdenPoolAuthenticatedRole.Arn 
-        "unauthenticated": !GetAtt IdenPoolUnAuthenticatedRole.Arn 
+  # IdentityPoolRoleAttachment: 
+  #   Type: AWS::Cognito::IdentityPoolRoleAttachment 
+  #   Properties: 
+  #     IdentityPoolId: !Ref GotchaIdentityPool
+  #     Roles: 
+  #       "authenticated": !GetAtt IdenPoolAuthenticatedRole.Arn 
+  #       "unauthenticated": !GetAtt IdenPoolUnAuthenticatedRole.Arn 
   
-  IdenPoolAuthenticatedRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Federated:
-                - cognito-identity.amazonaws.com
-            Action:
-              - 'sts:AssumeRoleWithWebIdentity'
-            Condition:
-              StringEquals:
-                cognito-identity.amazonaws.com:aud: !Ref GotchaIdentityPool
-              ForAnyValue:StringLike:
-                cognito-identity.amazonaws.com:amr: "unauthenticated"
-      Policies:
-        - PolicyName: InvokePrivateApiPolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: 'execute-api:Invoke'
-                Resource:
-                  - !Sub 'arn:aws:execute-api:${AWS::Region}:*:${GotchaApiId}/*'
+  # IdenPoolAuthenticatedRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     AssumeRolePolicyDocument:
+  #       Version: "2012-10-17"
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Federated:
+  #               - cognito-identity.amazonaws.com
+  #           Action:
+  #             - 'sts:AssumeRoleWithWebIdentity'
+  #           Condition:
+  #             StringEquals:
+  #               cognito-identity.amazonaws.com:aud: !Ref GotchaIdentityPool
+  #             ForAnyValue:StringLike:
+  #               cognito-identity.amazonaws.com:amr: "unauthenticated"
+  #     Policies:
+  #       - PolicyName: InvokePrivateApiPolicy
+  #         PolicyDocument:
+  #           Version: "2012-10-17"
+  #           Statement:
+  #             - Effect: Allow
+  #               Action: 'execute-api:Invoke'
+  #               Resource:
+  #                 - !Sub 'arn:aws:execute-api:${AWS::Region}:*:${GotchaApiId}/*'
 
-  IdenPoolUnAuthenticatedRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Federated:
-                - cognito-identity.amazonaws.com
-            Action:
-              - 'sts:AssumeRoleWithWebIdentity' 
-            Condition:
-              StringEquals:
-                cognito-identity.amazonaws.com:aud: !Ref GotchaIdentityPool
-              ForAnyValue:StringLike:
-                cognito-identity.amazonaws.com:amr: "unauthenticated"                 
-      Policies:
-        - PolicyName: InvokePrivateApiPolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action: 'execute-api:Invoke'
-                Resource:
-                  - !Sub 'arn:aws:execute-api:${AWS::Region}:*:${GotchaApiId}/*/api/public/*'
+  # IdenPoolUnAuthenticatedRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     AssumeRolePolicyDocument:
+  #       Version: "2012-10-17"
+  #       Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Federated:
+  #               - cognito-identity.amazonaws.com
+  #           Action:
+  #             - 'sts:AssumeRoleWithWebIdentity' 
+  #           Condition:
+  #             StringEquals:
+  #               cognito-identity.amazonaws.com:aud: !Ref GotchaIdentityPool
+  #             ForAnyValue:StringLike:
+  #               cognito-identity.amazonaws.com:amr: "unauthenticated"                 
+  #     Policies:
+  #       - PolicyName: InvokePrivateApiPolicy
+  #         PolicyDocument:
+  #           Version: "2012-10-17"
+  #           Statement:
+  #             - Effect: Allow
+  #               Action: 'execute-api:Invoke'
+  #               Resource:
+  #                 - !Sub 'arn:aws:execute-api:${AWS::Region}:*:${GotchaApiId}/*/api/public/*'
